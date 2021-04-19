@@ -1,99 +1,52 @@
 import './App.css';
-import Product from "./product";
+import Item from "./item";
 import {useEffect, useState} from "react";
-import ProductForm from "./product-form";
-import {BrowserRouter as Router, Link, Route, Switch} from "react-router-dom";
+import TaskForm from "./task-form";
 
 function App() {
 
-    const [cart, setCart] = useState([])
-    const [data, setData] = useState([])
+    const [task, setTask] = useState([])
     const [isPending, setIsPending] = useState(true)
     const [error, setError] = useState()
 
-    const onNewProductHandler = (product) => {
-        const newData = [...data];
-        newData.push(product);
-        console.log(newData);
-        setData(newData)
+    const onNewTaskHandler = (product) => {
+        const newTask = [...task];
+        newTask.push(product);
+        console.log(newTask);
+        setTask(newTask)
     }
-
 
     useEffect(() => {
         setTimeout(() => {
-                fetch('http://localhost:3001/products')
+                fetch('http://localhost:3001/items')
                     .then(response => {
                         if (response.ok) {
                             return response.json()
                         }
-                        throw new Error("Unable get data: " + response.statusText)
+                        throw new Error("Unable get tasks: " + response.statusText)
                     })
-                    .then(json => setData(json))
+                    .then(json => setTask(json))
                     .catch((err) => setError(err.message))
                     .finally(() => setIsPending(false))
             }
             , 1000)
     }, [])
 
-    const addToCartHandler = function (product) {
-        const newCart = [...cart];
-        newCart.push(product);
-        console.log(newCart);
-        setCart(newCart)
-    }
-
-    const removeToCartHandler = function (product) {
-        const newCart = [...cart];
-        const productIndex = newCart.findIndex(item => item.id === product.id)
-        newCart.splice(productIndex, 1)
-        setCart(newCart)
+    const removeTaskHandler = function (product) {
+        const newTask = [...task];
+        const taskIndex = newTask.findIndex(item => item.id === product.id)
+        newTask.splice(taskIndex, 1)
+        setTask(newTask)
     }
 
     return (
-        <Router>
-            <div className="App">
-
-                <nav>
-                    <ul>
-                        <li>
-                            <Link to="/">Home</Link>
-                        </li>
-                        <li>
-                            <Link to="/edit-product">Edit product</Link>
-                        </li>
-                        <li>
-                            <Link to="/cart">Cart</Link>
-                        </li>
-                    </ul>
-                </nav>
-
-
-                <Switch>
-                    <Route path="/cart">
-                        <h1>Shopping cart</h1>
-                        {cart.map(item => <div>{item.name}
-                            <button onClick={()=>removeToCartHandler(item)}>-</button>
-                        </div>)}
-                    </Route>
-                    <Route path="/edit-product">
-                        <ProductForm onNewProduct={onNewProductHandler}/>
-                    </Route>
-                    <Route path="/">
-                        {<div>{cart.length}</div>}
-                        {isPending && "Loading data..."}
-                        {error && <div>{error}</div>}
-                        <div style={{
-                            display: "flex",
-                            flexWrap: "wrap",
-                            margin: "5px"
-                        }}>
-                            {data.map(item => <Product key={item.id} product={item}
-                                                       onClickHandler={addToCartHandler}/>)}
-                        </div>
-                    </Route>
-                </Switch>
-            </div>
-        </Router>
+        <div className="App">
+            <h1>TO-DO List</h1>
+            <TaskForm onNewTask={onNewTaskHandler}/>
+            {isPending && "Loading data..."}
+            {error && <div>{error}</div>}
+            {task.map(item => <Item key={item.id} item={item} onClickHandler={removeTaskHandler}/>)}
+        </div>
     );
 }
 
